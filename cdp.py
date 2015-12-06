@@ -1,41 +1,50 @@
 class CDP:
-    def __init__(self, env):
-        self._id = env.next_cdp_id
-        env.next_cdp_id += 1
-        self.owner = env.actor
 
-        self.collateral_type = "ETH"
-        self.principal_debt = 0.
-        self.interest_debt = 0.
-        self.last_update_timestamp = 0
+    next_id = 0
+    env = None
+
+    def __init__(self, env, collateral_type):
+        self._id = CDP.next_id
+        CDP.next_id += 1
+        if not CDP.env:
+            CDP.env = env
+        self.owner = env.actor
+        self.created_timestamp = 0
+
+        self.collateral_type = collateral_type
+        self.principal_debt = 0
+        self.interest_debt = 0
 
     def collateral_quantity(self):
-        return env.balances[self.symbol].get(self.symbol)
+        return CDP.env.balances[self.collateral_type].get(self.collateral_type)
 
     # addCollateral
     def add(self, quantity):
-        if env.balances[self.symbol].sub(self.env.actor, quantity):
-            env.balances[self.symbol].add(self._id, quantity)
+        if CDP.env.balances[self.collateral_type].sub(self.env.actor,
+                                                      quantity):
+            CDP.env.balances[self.collateral_type].add(self._id, quantity)
 
     # freeCollateral
     def free(self, quantity):
         if False: # If removing this collateral leaves insufficient collateral ratio
             return False
-        if env.balances[self.symbol].sub(self.env.actor, quantity):
-            env.balances[self.symbol].add(self._id, quantity)
+        if CDP.env.balances[self.collateral_type].sub(self.env.actor,
+                                                      quantity):
+            CDP.env.balances[self.collateral_type].add(self._id, quantity)
 
-    def issue(dai_quantity):
-        if False: # If sender is not owner
+    def issue(self, dai_quantity):
+        if CDP.env.actor != self.owner:
             return False
         if False: # If removing this collateral leaves insufficient collateral ratio
             return False
+        self.created_timestamp = CDP.env.time
 
 
-    def cover(dai_quantity):
+    def cover(self, dai_quantity):
         # ensure sender is owner
         pass
 
-    def bailout():
+    def bailout(self):
         pass
 
     ## "cover" alias from Taker's side
