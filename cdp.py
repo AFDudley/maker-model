@@ -16,6 +16,12 @@ class CDP:
         self.principal_debt = 0
         self.interest_debt = 0
 
+    def _has_sufficient_collateral(self, dai, collateral):
+        vol_class = CDP.env.params.volatility_class[self.collateral_type]
+        collaterization = CDP.env.params.collaterization[vol_class]
+        price_idx = CDP.env.feeds["SDR/" + self.collateral_type]
+        return dai < (price_idx * collateral) / collaterization
+
     def collateral_quantity(self):
         return self.collateral_bal.get(self.collateral_type)
 
@@ -26,7 +32,9 @@ class CDP:
 
     # freeCollateral
     def free(self, quantity):
-        if False: # If removing this collateral leaves insufficient collateral ratio
+        balance = self.collateral_bal.get(self._id)
+        debt = self.principal_debt + self.interest_debt
+        if not self._has_sufficient_collateral(debt, balance - quantity):
             # TODO - should throw error instead of returning false
             return False
         if self.collateral_bal.sub(CDP.env.actor, quantity):
@@ -36,11 +44,8 @@ class CDP:
         if CDP.env.actor != self.owner:
             # TODO - should throw error instead of returning false
             return False
-        vol_class = CDP.env.params.volatility_class[self.collateral_type]
-        collaterization = CDP.env.params.collaterization[vol_class]
-        price_idx = CDP.env.feeds["SDR/" + self.collateral_type]
         balance = self.collateral_bal.get(self._id)
-        if dai_quantity > (price_idx * balance) / collaterization:
+        if not self._has_sufficient_collateral(dai_quantity, balance):
             # TODO - should throw error instead of returning false
             return False
         self.created_timestamp = CDP.env.time
