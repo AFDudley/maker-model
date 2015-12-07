@@ -12,32 +12,41 @@ class CDP:
         self.created_timestamp = 0
 
         self.collateral_type = collateral_type
+        self.collateral_bal = CDP.env.balances[self.collateral_type]
         self.principal_debt = 0
         self.interest_debt = 0
 
     def collateral_quantity(self):
-        return CDP.env.balances[self.collateral_type].get(self.collateral_type)
+        return self.collateral_bal.get(self.collateral_type)
 
     # addCollateral
     def add(self, quantity):
-        if CDP.env.balances[self.collateral_type].sub(self.env.actor,
-                                                      quantity):
-            CDP.env.balances[self.collateral_type].add(self._id, quantity)
+        if self.collateral_bal.sub(CDP.env.actor, quantity):
+            self.collateral_bal.add(self._id, quantity)
 
     # freeCollateral
     def free(self, quantity):
         if False: # If removing this collateral leaves insufficient collateral ratio
+            # TODO - should throw error instead of returning false
             return False
-        if CDP.env.balances[self.collateral_type].sub(self.env.actor,
-                                                      quantity):
-            CDP.env.balances[self.collateral_type].add(self._id, quantity)
+        if self.collateral_bal.sub(CDP.env.actor, quantity):
+            self.collateral_bal.add(self._id, quantity)
 
     def issue(self, dai_quantity):
         if CDP.env.actor != self.owner:
+            # TODO - should throw error instead of returning false
             return False
-        if False: # If removing this collateral leaves insufficient collateral ratio
+        vol_class = CDP.env.params.volatility_class[self.collateral_type]
+        collaterization = CDP.env.params.collaterization[vol_class]
+        price_idx = CDP.env.feeds["SDR/" + self.collateral_type]
+        balance = self.collateral_bal.get(self._id)
+        if dai_quantity > (price_idx * balance) / collaterization:
+            # TODO - should throw error instead of returning false
             return False
         self.created_timestamp = CDP.env.time
+        self.principal_debt = dai_quantity
+        CDP.env.balances["DAI"].add(CDP.env.actor, dai_quantity)
+
 
 
     def cover(self, dai_quantity):

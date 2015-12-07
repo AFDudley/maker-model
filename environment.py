@@ -1,9 +1,10 @@
 from balance_db import BalanceDB
+from parameterdb import ParameterDB
 
 
 class Environment:
     def __init__(self):
-        self.params = {"min_col_ratio": 1.5}
+        self.params = ParameterDB()
         self.feeds = {"SDR/ETH": 0.67}
         self.actor = 'alice'
         self.balances = {
