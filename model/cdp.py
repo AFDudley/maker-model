@@ -52,8 +52,6 @@ class CDP:
         self.principal_debt = dai_quantity
         CDP.env.balances["DAI"].add(CDP.env.actor, dai_quantity)
 
-
-
     def cover(self, dai_quantity):
         # ensure sender is owner
         pass

@@ -1,5 +1,5 @@
 import unittest
-import cdp
+from cdp import CDP
 
 class TestBasicCDP(unittest.TestCase):
     def setUp(self):
@@ -12,7 +12,7 @@ class TestBasicCDP(unittest.TestCase):
         cdp1.add(100.)
     def test_issue_too_many(self):
         cdp1.add(100.)
-        
+
 
 
 if __name__ == "__main__":
