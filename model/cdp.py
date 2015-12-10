@@ -17,37 +17,35 @@ class CDP:
         self.interest_debt = 0
 
     def _has_sufficient_collateral(self, dai, collateral):
-        vol_class = CDP.env.params.volatility_class[self.collateral_type]
-        collaterization = CDP.env.params.collaterization[vol_class]
+        collaterization = CDP.env.params.collaterization[self.collateral_type]
         price_idx = CDP.env.feeds["SDR/" + self.collateral_type]
         return dai < (price_idx * collateral) / collaterization
+
+    def _is_owner(self):
+        if CDP.env.actor != self.owner:
+            raise ValueError("%s can't issue from cdp owned by %s"
+                             % (CDP.env.actor, self.owner))
 
     def collateral_quantity(self):
         return self.collateral_bal.get(self.collateral_type)
 
-    # addCollateral
-    def add(self, quantity):
-        if self.collateral_bal.sub(CDP.env.actor, quantity):
-            self.collateral_bal.add(self._id, quantity)
+    def add_collateral(self, quantity):
+        self.collateral_bal.send(CDP.env.actor, self._id, quantity)
 
-    # freeCollateral
-    def free(self, quantity):
+    def free_collateral(self, quantity):
+        self._is_owner()
         balance = self.collateral_bal.get(self._id)
         debt = self.principal_debt + self.interest_debt
         if not self._has_sufficient_collateral(debt, balance - quantity):
-            # TODO - should throw error instead of returning false
-            return False
-        if self.collateral_bal.sub(CDP.env.actor, quantity):
-            self.collateral_bal.add(self._id, quantity)
+            raise ValueError("Insufficient free collateral")
+        self.collateral_bal.send(self._id, self.owner, quantity)
 
     def issue(self, dai_quantity):
-        if CDP.env.actor != self.owner:
-            # TODO - should throw error instead of returning false
-            return False
+        self._is_owner()
         balance = self.collateral_bal.get(self._id)
         if not self._has_sufficient_collateral(dai_quantity, balance):
-            # TODO - should throw error instead of returning false
-            return False
+            raise ValueError("Insufficient collateral to issue %d dai",
+                             dai_quantity)
         self.created_timestamp = CDP.env.time
         self.principal_debt = dai_quantity
         CDP.env.balances["DAI"].add(CDP.env.actor, dai_quantity)

@@ -2,7 +2,7 @@ import pytest
 from model.balancedb import BalanceDB
 
 
-class TestBalanceDB():
+class TestBalanceDB:
 
     def setup_class(self):
         self.bdb = BalanceDB('Test')

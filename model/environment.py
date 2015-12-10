@@ -1,5 +1,5 @@
-from balance_db import BalanceDB
-from parameterdb import ParameterDB
+from model.balancedb import BalanceDB
+from model.parameterdb import ParameterDB
 
 
 class Environment:
