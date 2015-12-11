@@ -50,9 +50,13 @@ class CDP:
         self.principal_debt = dai_quantity
         CDP.env.balances["DAI"].add(CDP.env.actor, dai_quantity)
 
-    def cover(self, dai_quantity):
-        # ensure sender is owner
-        pass
+    def cover(self):
+        self._is_owner()
+        total_debt = self.principal_debt + self.interest_debt
+        CDP.env.balances["DAI"].sub(self.owner, total_debt)
+        CDP.env.balances["DAI"].add(CDP.env.maker_addr, self.interest_debt)
+        collateral_balance = self.collateral_bal.get(self._id)
+        self.collateral_bal.send(self._id, self.owner, collateral_balance)
 
     def bailout(self):
         pass

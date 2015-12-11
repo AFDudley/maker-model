@@ -6,3 +6,4 @@ class ParameterDB:
                                 'ETH':  1.5}
         self.margin_cutoff = {'BTC':  1.5,
                               'ETH':  1.5}
+        self.interest_rate = 1.02
