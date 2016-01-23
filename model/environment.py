@@ -27,4 +27,3 @@ class Environment:
     def update(self):
         self.update_feeds()
         self.time += Environment.DELTA_TIME
-
